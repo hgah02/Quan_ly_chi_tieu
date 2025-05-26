@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Đăng nhập - Quản lý tài chính</title>
+  <link rel="stylesheet" href="../css/index.css" />
+</head>
+<body>
+  <div class="login-container">
+    <div class="logo">
+      <img src="../assets/logo-dai-hoc-mo-dia-chat-inkythuatso-01-20-14-51-41.jpg" alt="Logo trường đại học Mỏ - Địa chất" />
+    </div>
+    <form class="login-form">
+      <h2>Quản lý tài chính cá nhân</h2>
+      <p>Vui lòng đăng nhập để tiếp tục</p>
+
+      <label for="username">Tên đăng nhập</label>
+      <input type="text" id="username" placeholder="Nhập tên đăng nhập" required />
+
+      <label for="password">Mật khẩu</label>
+      <input type="password" id="password" placeholder="Nhập mật khẩu" required />
+
+      <button type="submit">Đăng nhập</button>
+
+      <p class="register-link">Chưa có tài khoản? <a href="register.html">Đăng ký</a></p>
+    </form>
+    <div id="login-message" style="color: red; margin-top: 10px; text-align: center;"></div>
+    <script>
+      document.querySelector('.login-form').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const messageBox = document.getElementById('login-message');
+        messageBox.textContent = '';
+
+        const formData = new FormData();
+        formData.append('username', username);
+        formData.append('password', password);
+
+        const response = await fetch('../php/login.php', {
+          method: 'POST',
+          body: formData
+        });
+        const result = await response.json();
+
+        if (result.success) {
+          window.location.href = 'home.html';
+        } else {
+          messageBox.textContent = result.message || 'Đăng nhập thất bại!';
+        }
+      });
+    </script>
+  </div>
+</body>
+</html>

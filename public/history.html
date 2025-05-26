@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lịch sử giao dịch</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="../css/home.css"/>
+  <link rel="stylesheet" href="../css/history.css"/>
+  <link rel="stylesheet" href="../css/sidebar.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+        <img class="avatar" src="../assets/logo-dai-hoc-mo-dia-chat-inkythuatso-01-20-14-51-41.jpg" alt="Avatar">
+        <div class="username" id="username">Tên người dùng</div>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="home.html"><i class="fa fa-home"></i> <span>Tổng quan</span></a>
+        <a href="income.html"><i class="fa fa-arrow-down"></i> <span>Quản lý thu nhập</span></a>
+        <a href="expense.html"><i class="fa fa-arrow-up"></i> <span>Quản lý chi tiêu</span></a>
+        <a href="history.html" class="active"><i class="fa fa-history"></i> <span>Lịch sử giao dịch</span></a>
+        <a href="financial_statement.html"><i class="fa-solid fa-coins"></i> <span>Xem báo cáo</span></a>
+        <a href="accounts.html"><i class="fa fa-user-circle"></i> <span>Quản lý tài khoản</span></a>
+        <a href="logout.html"><i class="fa fa-sign-out-alt"></i> <span>Đăng xuất</span></a>
+    </nav>
+  </div>
+  <div class="main-content">
+    <h2 style="text-align:center;margin-top:18px;">Lịch sử giao dịch</h2>
+    <div class="history-tabs">
+      <button class="history-tab active" data-tab="income">Thu nhập</button>
+      <button class="history-tab" data-tab="expense">Chi tiêu</button>
+    </div>
+    <!-- Filter bar -->
+    <div class="history-filter-bar" id="filter-bar-income">
+      <input type="month" id="income-month" />
+      <input type="text" id="income-keyword" placeholder="Tìm kiếm ghi chú..." style="width:160px;">
+      <button class="export-btn" onclick="exportIncomeExcel()"><i class="fa fa-file-excel"></i> Xuất Excel</button>
+    </div>
+    <div class="history-filter-bar" id="filter-bar-expense" style="display:none;">
+      <input type="month" id="expense-month" />
+      <select id="expense-category">
+        <option value="">Tất cả danh mục</option>
+      </select>
+      <input type="text" id="expense-keyword" placeholder="Tìm kiếm ghi chú..." style="width:160px;">
+      <button class="export-btn" onclick="exportExpenseExcel()"><i class="fa fa-file-excel"></i> Xuất Excel</button>
+    </div>
+    <!-- Table box -->
+    <div class="history-table-box" id="tab-income">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Số tiền</th>
+            <th>Ngày</th>
+            <th>Ghi chú</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="income-history"></tbody>
+      </table>
+      <div class="pagination" id="income-pagination"></div>
+    </div>
+    <div class="history-table-box" id="tab-expense" style="display:none;">
+      <table class="history-table">
+        <thead>
+          <tr>
+            <th>Số tiền</th>
+            <th>Danh mục</th>
+            <th>Ngày</th>
+            <th>Ghi chú</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="expense-history"></tbody>
+      </table>
+      <div class="pagination" id="expense-pagination"></div>
+    </div>
+  </div>
+  <script>
+    let editingIncomeId = null;
+    let editingExpenseId = null;
+    // Tab switching
+    document.querySelectorAll('.history-tab').forEach(tab => {
+      tab.onclick = function() {
+        document.querySelectorAll('.history-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+        if(this.dataset.tab === 'income') {
+          document.getElementById('tab-income').style.display = '';
+          document.getElementById('tab-expense').style.display = 'none';
+          document.getElementById('filter-bar-income').style.display = '';
+          document.getElementById('filter-bar-expense').style.display = 'none';
+        } else {
+          document.getElementById('tab-income').style.display = 'none';
+          document.getElementById('tab-expense').style.display = '';
+          document.getElementById('filter-bar-income').style.display = 'none';
+          document.getElementById('filter-bar-expense').style.display = '';
+        }
+      }
+    });
+
+    // --- API & Render ---
+    let incomePage = 1, expensePage = 1, incomeTotal = 0, expenseTotal = 0, incomePerPage = 20, expensePerPage = 20;
+    let expenseCategories = [];
+
+    // Lấy danh mục chi tiêu cho filter
+    async function loadExpenseCategories() {
+      const res = await fetch('../php/expense.php?action=categories');
+      const data = await res.json();
+      expenseCategories = data.categories || [];
+      const select = document.getElementById('expense-category');
+      select.innerHTML = '<option value="">Tất cả danh mục</option>';
+      expenseCategories.forEach(cat => {
+        select.innerHTML += `<option value="${cat.id}">${cat.name}</option>`;
+      });
+    }
+
+    // Lấy lịch sử thu nhập
+    async function loadIncomeHistory(page = 1) {
+      incomePage = page;
+      const month = document.getElementById('income-month').value;
+      const keyword = document.getElementById('income-keyword').value.trim();
+      const res = await fetch(`../php/income.php?action=history&page=${page}&per_page=${incomePerPage}&month=${month}&keyword=${encodeURIComponent(keyword)}`);
+      const data = await res.json();
+      incomeTotal = data.total || 0;
+      const tbody = document.getElementById('income-history');
+      tbody.innerHTML = '';
+      if (!data.items || !data.items.length) {
+        tbody.innerHTML = `<tr><td colspan="4" style="color:#888;text-align:center;">Chưa có dữ liệu</td></tr>`;
+        renderPagination('income', 1, 1);
+        return;
+      }
+      data.items.forEach(item => {
+        if (editingIncomeId === item.id) {
+          tbody.innerHTML += `
+            <tr class="edit-row">
+              <td><input type="text" id="edit-income-amount" value="${Number(item.amount).toLocaleString('vi-VN')}" style="width:90px;text-align:right;" /></td>
+              <td><input type="date" id="edit-income-date" value="${item.date}" /></td>
+              <td><input type="text" id="edit-income-note" value="${item.note ? item.note.replace(/"/g, '&quot;') : ''}" style="width:120px;" /></td>
+              <td>
+                <button onclick="confirmEditIncome(${item.id})"><i class="fa fa-check"></i></button>
+                <button onclick="cancelEditIncome()"><i class="fa fa-times"></i></button>
+              </td>
+            </tr>
+          `;
+        } else {
+          tbody.innerHTML += `
+            <tr>
+              <td class="amount-cell">${Number(item.amount).toLocaleString('vi-VN')} VNĐ</td>
+              <td class="date-cell">${item.date}</td>
+              <td class="note-cell" title="${item.note ? item.note.replace(/"/g, '&quot;') : ''}">${item.note ? item.note : ''}</td>
+              <td class="actions-cell">
+                <button class="edit-btn" onclick="editIncome(${item.id}, '${item.amount}', '${item.date}', \`${item.note ? item.note.replace(/`/g, '\\`') : ''}\`)"><i class="fa fa-edit"></i></button>
+                <button class="delete-btn" onclick="deleteIncome(${item.id})"><i class="fa fa-trash"></i></button>
+              </td>
+            </tr>
+          `;
+        }
+      });
+      renderPagination('income', page, Math.ceil(incomeTotal / incomePerPage));
+      const editIncomeAmount = document.getElementById('edit-income-amount');
+      if (editIncomeAmount) {
+        editIncomeAmount.addEventListener('input', function() {
+          let value = this.value.replace(/\D/g, '');
+          if (value) {
+            this.value = Number(value).toLocaleString('vi-VN');
+          } else {
+            this.value = '';
+          }
+        });
+      }
+    }
+
+    window.editIncome = function(id, amount, date, note) {
+      editingIncomeId = id;
+      loadIncomeHistory(incomePage);
+    };
+    window.cancelEditIncome = function() {
+      editingIncomeId = null;
+      loadIncomeHistory(incomePage);
+    };
+    window.confirmEditIncome = async function(id) {
+      const amount = document.getElementById('edit-income-amount').value.replace(/\D/g, '');
+      const date = document.getElementById('edit-income-date').value;
+      const note = document.getElementById('edit-income-note').value.trim();
+      if (!amount || isNaN(amount) || Number(amount) <= 0) {
+        alert('Số tiền phải lớn hơn 0 và chỉ nhập số!');
+        return;
+      }
+      if (!date) {
+        alert('Vui lòng chọn ngày!');
+        return;
+      }
+      const formData = new FormData();
+      formData.append('action', 'edit');
+      formData.append('id', id);
+      formData.append('amount', amount);
+      formData.append('date', date);
+      formData.append('note', note);
+      const res = await fetch('../php/income.php', { method: 'POST', body: formData });
+      const result = await res.json();
+      if (result.success) {
+        editingIncomeId = null;
+        loadIncomeHistory(incomePage);
+      } else {
+        alert(result.message || 'Có lỗi xảy ra!');
+      }
+    };
+
+    async function deleteIncome(id) {
+      if (!confirm('Bạn có chắc chắn muốn xóa bản ghi này?')) return;
+      const formData = new FormData();
+      formData.append('action', 'delete');
+      formData.append('id', id);
+      await fetch('../php/income.php', { method: 'POST', body: formData });
+      loadIncomeHistory(incomePage);
+    }
+
+    function exportIncomeExcel() {
+      const month = document.getElementById('income-month').value;
+      const keyword = document.getElementById('income-keyword').value.trim();
+      window.open(`../php/income.php?action=export_excel&month=${month}&keyword=${encodeURIComponent(keyword)}`);
+    }
+
+    // ==== EXPENSE ====
+    async function loadExpenseHistory(page = 1) {
+      expensePage = page;
+      const month = document.getElementById('expense-month').value;
+      const category = document.getElementById('expense-category').value;
+      const keyword = document.getElementById('expense-keyword').value.trim();
+      const res = await fetch(`../php/expense.php?action=history&page=${page}&per_page=${expensePerPage}&month=${month}&category=${category}&keyword=${encodeURIComponent(keyword)}`);
+      const data = await res.json();
+      expenseTotal = data.total || 0;
+      const tbody = document.getElementById('expense-history');
+      tbody.innerHTML = '';
+      if (!data.items || !data.items.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="color:#888;text-align:center;">Chưa có dữ liệu</td></tr>`;
+        renderPagination('expense', 1, 1);
+        return;
+      }
+      data.items.forEach(item => {
+        if (Number(editingExpenseId) === Number(item.id)) {
+          tbody.innerHTML += `
+            <tr class="edit-row">
+              <td><input type="text" id="edit-expense-amount" value="${Number(item.amount).toLocaleString('vi-VN')}" style="width:90px;text-align:right;" /></td>
+              <td>
+                <select id="edit-expense-category">
+                  ${expenseCategories.map(cat => `<option value="${cat.id}" ${cat.id==item.category_id?'selected':''}>${cat.name}</option>`).join('')}
+                </select>
+              </td>
+              <td><input type="date" id="edit-expense-date" value="${item.date}" /></td>
+              <td><input type="text" id="edit-expense-note" value="${item.note ? item.note.replace(/"/g, '&quot;') : ''}" style="width:120px;" /></td>
+              <td>
+                <button onclick="confirmEditExpense(${item.id})"><i class="fa fa-check"></i></button>
+                <button onclick="cancelEditExpense()"><i class="fa fa-times"></i></button>
+              </td>
+            </tr>
+          `;
+        } else {
+          tbody.innerHTML += `
+            <tr>
+              <td class="amount-cell">${Number(item.amount).toLocaleString('vi-VN')} VNĐ</td>
+              <td class="category-cell">${item.category_name}</td>
+              <td class="date-cell">${item.date}</td>
+              <td class="note-cell" title="${item.note ? item.note.replace(/"/g, '&quot;') : ''}">${item.note ? item.note : ''}</td>
+              <td class="actions-cell">
+                <button class="edit-btn" onclick="editExpense(${item.id}, '${item.amount}', '${item.category_id}', '${item.date}', \`${item.note ? item.note.replace(/`/g, '\\`') : ''}\`)"><i class="fa fa-edit"></i></button>
+                <button class="delete-btn" onclick="deleteExpense(${item.id})"><i class="fa fa-trash"></i></button>
+              </td>
+            </tr>
+          `;
+        }
+      });
+      renderPagination('expense', page, Math.ceil(expenseTotal / expensePerPage));
+      // Định dạng số tiền khi nhập ở ô sửa chi tiêu
+      const editExpenseAmount = document.getElementById('edit-expense-amount');
+      if (editExpenseAmount) {
+        editExpenseAmount.addEventListener('input', function() {
+          let value = this.value.replace(/\D/g, '');
+          if (value) {
+            this.value = Number(value).toLocaleString('vi-VN');
+          } else {
+            this.value = '';
+          }
+        });
+      }
+    }
+
+    window.editExpense = function(id, amount, category_id, date, note) {
+      editingExpenseId = Number(id);
+      loadExpenseHistory(expensePage);
+    };
+    window.cancelEditExpense = function() {
+      editingExpenseId = null;
+      loadExpenseHistory(expensePage);
+    };
+    window.confirmEditExpense = async function(id) {
+      const amount = document.getElementById('edit-expense-amount').value.replace(/\D/g, '');
+      const category_id = document.getElementById('edit-expense-category').value;
+      const date = document.getElementById('edit-expense-date').value;
+      const note = document.getElementById('edit-expense-note').value.trim();
+      if (!amount || isNaN(amount) || Number(amount) <= 0) {
+        alert('Số tiền phải lớn hơn 0 và chỉ nhập số!');
+        return;
+      }
+      if (!date) {
+        alert('Vui lòng chọn ngày!');
+        return;
+      }
+      if (!category_id) {
+        alert('Vui lòng chọn danh mục!');
+        return;
+      }
+      const formData = new FormData();
+      formData.append('action', 'edit');
+      formData.append('id', id);
+      formData.append('amount', amount);
+      formData.append('category_id', category_id);
+      formData.append('date', date);
+      formData.append('note', note);
+      const res = await fetch('../php/expense.php', { method: 'POST', body: formData });
+      const result = await res.json();
+      if (result.success) {
+        editingExpenseId = null;
+        loadExpenseHistory(expensePage);
+      } else {
+        alert(result.message || 'Có lỗi xảy ra!');
+      }
+    };
+
+    async function deleteExpense(id) {
+      if (!confirm('Bạn có chắc chắn muốn xóa bản ghi này?')) return;
+      const formData = new FormData();
+      formData.append('action', 'delete');
+      formData.append('id', id);
+      await fetch('../php/expense.php', { method: 'POST', body: formData });
+      loadExpenseHistory(expensePage);
+    }
+
+    function exportExpenseExcel() {
+      const month = document.getElementById('expense-month').value;
+      const category = document.getElementById('expense-category').value;
+      const keyword = document.getElementById('expense-keyword').value.trim();
+      window.open(`../php/expense.php?action=export_excel&month=${month}&category=${category}&keyword=${encodeURIComponent(keyword)}`);
+    }
+
+    // Phân trang
+    function renderPagination(type, page, totalPage) {
+      const pag = document.getElementById(type + '-pagination');
+      pag.innerHTML = '';
+      if (totalPage <= 1) return;
+      if (page > 1) {
+        pag.innerHTML += `<button onclick="gotoPage('${type}',${page-1})"><i class="fa fa-chevron-left"></i></button>`;
+      }
+      for (let i = Math.max(1, page-2); i <= Math.min(totalPage, page+2); i++) {
+        pag.innerHTML += `<button class="${i===page?'active':''}" onclick="gotoPage('${type}',${i})">${i}</button>`;
+      }
+      if (page < totalPage) {
+        pag.innerHTML += `<button onclick="gotoPage('${type}',${page+1})"><i class="fa fa-chevron-right"></i></button>`;
+      }
+    }
+    window.gotoPage = function(type, page) {
+      if(type==='income') loadIncomeHistory(page);
+      else loadExpenseHistory(page);
+    }
+
+    // Lọc
+    document.getElementById('income-month').onchange = () => loadIncomeHistory(1);
+    document.getElementById('income-keyword').oninput = () => loadIncomeHistory(1);
+    document.getElementById('expense-month').onchange = () => loadExpenseHistory(1);
+    document.getElementById('expense-category').onchange = () => loadExpenseHistory(1);
+    document.getElementById('expense-keyword').oninput = () => loadExpenseHistory(1);
+
+    // Khởi tạo
+    document.addEventListener('DOMContentLoaded', async function() {
+      await loadExpenseCategories();
+      loadIncomeHistory();
+      loadExpenseHistory();
+      // Lấy tên người dùng nếu có API
+      fetch('../php/get_user.php')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById('username').textContent = data.username;
+          } else {
+            document.getElementById('username').textContent = '';
+          }
+        });
+    });
+
+    // Tự động set active cho sidebar theo URL
+    document.addEventListener('DOMContentLoaded', function() {
+      var path = window.location.pathname.split('/').pop();
+      document.querySelectorAll('.sidebar-nav a').forEach(function(link) {
+        if (link.getAttribute('href') === path) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

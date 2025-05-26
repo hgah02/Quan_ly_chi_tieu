@@ -1,0 +1,435 @@
+.expense-form-box {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(59,130,246,0.07);
+  padding: 24px 32px 18px 32px;
+  max-width: 480px;
+  margin: 32px auto 24px auto;
+}
+
+.expense-form-box h2 {
+  margin-top: 0;
+  color: #1a365d;
+  font-size: 1.25rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.input-group {
+  margin-bottom: 16px;
+}
+
+.input-group label {
+  font-weight: 500;
+  color: #334155;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.input-group input[type="text"],
+.input-group input[type="date"] {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 15px;
+  background: #f8fafc;
+  transition: border 0.2s;
+}
+
+.input-group input:focus {
+  border: 1.5px solid #2563eb;
+  outline: none;
+  background: #fff;
+}
+
+button[type="submit"] {
+  background: linear-gradient(90deg, #2563eb 60%, #38bdf8 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 22px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-top: 8px;
+  width: 100%;
+}
+
+button[type="submit"]:hover {
+  background: linear-gradient(90deg, #1d4ed8 60%, #0ea5e9 100%);
+}
+
+#expense-message {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 15px;
+}
+
+.income-message.success { color: #16a34a; }
+.income-message.error { color: #e11d48; }
+
+.expense-history-col {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(59,130,246,0.07);
+  padding: 18px 24px;
+  max-width: 700px;
+  margin: 0 auto 32px auto;
+}
+
+.expense-history-col h3 {
+  margin-top: 0;
+  color: #1a365d;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.expense-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 0;
+}
+
+.expense-table th, .expense-table td {
+  padding: 8px 10px;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.expense-table th {
+  background: #f1f5f9;
+  color: #1e293b;
+  font-weight: 600;
+  border-bottom: 1.5px solid #e2e8f0;
+}
+
+.expense-latest-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.expense-latest-item {
+  display: flex;
+  align-items: center;
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 1px 4px rgba(59,130,246,0.06);
+  font-size: 15px;
+  gap: 28px;
+  border-left: 4px solid #2563eb;
+  transition: box-shadow 0.2s;
+}
+
+.expense-latest-item:hover {
+  box-shadow: 0 4px 16px rgba(59,130,246,0.13);
+  background: #e0f2fe;
+}
+
+.expense-latest-item .amount {
+  min-width: 100px;
+  font-weight: bold;
+  color: #e11d48;
+  font-size: 1.07em;
+}
+
+.expense-latest-item .category {
+  min-width: 90px;
+  color: #0ea5e9;
+  font-weight: 500;
+}
+
+.expense-latest-item .date {
+  min-width: 100px;
+  color: #64748b;
+}
+
+.expense-latest-item .note {
+  flex: 1;
+  color: #334155;
+  font-style: italic;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.expense-latest-item .actions {
+  min-width: 70px;
+  display: flex;
+  gap: 8px;
+}
+
+.expense-latest-item button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  font-size: 1.1rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.expense-latest-item button:hover {
+  background: #fca5a5;
+  color: #b91c1c;
+}
+
+.category-dropdown {
+  position: relative;
+}
+
+#category-selected {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 15px;
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+#category-list {
+  display: none;
+  position: absolute;
+  top: 110%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.07);
+  z-index: 10;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+#category-list.show {
+  display: block;
+}
+
+.category-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: background 0.15s;
+}
+
+.category-item:hover {
+  background: #e0f2fe;
+}
+
+.category-delete-btn {
+  background: none;
+  border: none;
+  color: #e11d48;
+  cursor: pointer;
+  font-size: 1em;
+  margin-left: 8px;
+}
+
+@media (max-width: 900px) {
+  .expense-form-box, .expense-history-col {
+    max-width: 100vw;
+    padding: 10px 2px;
+  }
+  .expense-latest-item {
+    gap: 10px;
+    font-size: 14px;
+    flex-wrap: wrap;
+  }
+  .expense-latest-item .note {
+    min-width: 100%;
+    margin-top: 4px;
+  }
+}
+
+/* ...giữ nguyên các phần form... */
+
+.expense-history-col {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(59,130,246,0.10);
+  padding: 26px 28px 18px 28px;
+  max-width: 760px;
+  margin: 0 auto 36px auto;
+  overflow-x: auto;
+  transition: box-shadow 0.2s;
+}
+
+.expense-history-col h3 {
+  margin-top: 0;
+  color: #1a365d;
+  font-size: 1.18rem;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.expense-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  background: #f8fafc;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(59,130,246,0.04);
+}
+
+.expense-table th, .expense-table td {
+  padding: 12px 18px;
+  border-bottom: 1px solid #e3eafc;
+  text-align: center;
+  font-size: 15.5px;
+  transition: background 0.15s;
+}
+
+.expense-table th {
+  background: #f1f5f9;
+  color: #1a365d;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.2px;
+  border-bottom: 2px solid #e0e7ef;
+}
+
+.expense-table tr:last-child td {
+  border-bottom: none;
+}
+
+.expense-table tr:hover td {
+  background: #e0f2fe;
+}
+
+.expense-table td.amount-cell {
+  color: #e11d48;
+  font-weight: 600;
+  font-size: 1.07em;
+  min-width: 110px;
+}
+
+.expense-table td.category-cell {
+  color: #0ea5e9;
+  font-weight: 500;
+  min-width: 100px;
+}
+
+.expense-table td.date-cell {
+  color: #64748b;
+  min-width: 110px;
+}
+
+.expense-table td.note-cell {
+  max-width: 200px;
+  min-width: 120px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  word-break: break-all;
+  text-align: left;
+  cursor: pointer;
+  color: #334155;
+  font-style: italic;
+  padding-right: 18px;
+}
+
+.expense-table td.actions-cell {
+  min-width: 80px;
+}
+
+.edit-btn, .delete-btn {
+  background: none;
+  border: none;
+  color: #3b82f6;
+  font-size: 1.15em;
+  cursor: pointer;
+  margin: 0 4px;
+  border-radius: 4px;
+  padding: 2px 7px;
+  transition: color 0.2s, background 0.15s;
+}
+
+.edit-btn:hover {
+  color: #16a34a;
+  background: #d1fae5;
+}
+
+.delete-btn:hover {
+  color: #e74c3c;
+  background: #fee2e2;
+}
+
+@media (max-width: 900px) {
+  .expense-history-col {
+    max-width: 100vw;
+    padding: 10px 2px;
+    font-size: 14px;
+  }
+  .expense-table th, .expense-table td {
+    padding: 8px 4px;
+    font-size: 13.5px;
+  }
+  .expense-table td.note-cell {
+    max-width: 90px;
+  }
+}
+
+.add-category-btn {
+  background: none;
+  border: none;
+  padding: 0 0 0 6px;
+  vertical-align: middle;
+  cursor: pointer;
+  outline: none;
+  border-radius: 50%;
+  line-height: 1;
+  transition: background 0.18s, color 0.18s;
+}
+
+.add-category-btn i {
+  color: #2563eb;
+  font-size: 1.08em;
+  transition: color 0.18s;
+}
+
+.add-category-btn:hover {
+  background: #e0e7ff;
+}
+
+.add-category-btn:hover i {
+  color: #1d4ed8;
+}
+
+/* Nút thêm chi tiêu nhỏ gọn, đồng bộ với income */
+.expense-form-box button[type="submit"] {
+  width: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #38bdf8 100%);
+  color: white;
+  border: none;
+  padding: 12px 0;
+  font-size: 1.08rem;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.10);
+  transition: background 0.3s, transform 0.15s;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.expense-form-box button[type="submit"]:hover {
+  background: linear-gradient(90deg, #38bdf8 0%, #3b82f6 100%);
+  transform: translateY(-2px) scale(1.03);
+}

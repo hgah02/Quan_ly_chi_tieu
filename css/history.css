@@ -1,0 +1,294 @@
+/* Đặt chiều rộng và căn lề cho các cột */
+.history-table th,
+.history-table td {
+  padding: 8px 10px;
+  font-size: 1.07rem;
+  height: 44px;
+  box-sizing: border-box;
+  vertical-align: middle;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.history-table th:nth-child(1), .history-table td:nth-child(1) { width: 140px; text-align: right; }
+.history-table th:nth-child(2), .history-table td:nth-child(2) { width: 140px; text-align: center; }
+.history-table th:nth-child(3), .history-table td:nth-child(3) { width: 220px; text-align: left; }
+.history-table th:nth-child(4), .history-table td:nth-child(4) { width: 120px; text-align: center; }
+
+/* Tabs */
+.history-tabs {
+  display: flex;
+  justify-content: center;
+  margin: 24px 0 18px 0;
+  gap: 12px;
+}
+.history-tab {
+  padding: 10px 32px;
+  border: none;
+  border-radius: 8px 8px 0 0;
+  background: #eaf4fb;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 1.13rem;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.04);
+  transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+  outline: none;
+}
+.history-tab.active {
+  background: #fff;
+  color: #2563eb;
+  border-bottom: 2px solid #60a5fa;
+  z-index: 2;
+  box-shadow: 0 4px 16px rgba(59,130,246,0.08);
+}
+.history-tab:hover:not(.active) {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+/* Filter bar */
+.history-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  justify-content: center;
+}
+.history-filter-bar input,
+.history-filter-bar select {
+  padding: 7px 12px;
+  border: 1.5px solid #c7dbe9;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #f6fbff;
+  color: #2563eb;
+  outline: none;
+  transition: border 0.18s;
+}
+.history-filter-bar input:focus,
+.history-filter-bar select:focus {
+  border: 1.5px solid #60a5fa;
+}
+
+/* Table box */
+.history-table-box {
+  background: #f6fbff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(59,130,246,0.06);
+  padding: 22px 18px 22px 18px;
+  max-width: 950px;
+  margin: 0 auto 36px auto;
+  overflow-x: auto;
+  transition: box-shadow 0.2s;
+}
+.history-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 6px rgba(59,130,246,0.03);
+}
+.history-table th {
+  background: #eaf4fb;
+  color: #2563eb;
+  font-weight: 700;
+  border-bottom: 2px solid #c7dbe9;
+}
+.history-table tr {
+  transition: background 0.15s;
+}
+.history-table tbody tr:hover {
+  background: #f0f6fa;
+}
+.history-table td.amount-cell {
+  color: #059669;
+  font-weight: 600;
+}
+.history-table td.category-cell {
+  color: #2563eb;
+}
+.history-table td.actions-cell button {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 1.13em;
+  cursor: pointer;
+  margin: 0 2px;
+  border-radius: 6px;
+  padding: 5px 8px;
+  transition: background 0.15s, color 0.18s;
+}
+.history-table td.actions-cell button.edit-btn {
+  background: #bae6fd;
+  color: #2563eb;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  margin-right: 2px;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.history-table td.actions-cell button.delete-btn {
+  background: #f1f5f9;
+  color: #ef4444;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.history-table td.actions-cell button.edit-btn:hover { background: #60a5fa; color: #fff; }
+.history-table td.actions-cell button.delete-btn:hover { background: #ef4444; color: #fff; }
+.history-table td.actions-cell button:hover {
+  background: #e0e7ef;
+  color: #e11d48;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 0 0;
+}
+.pagination button {
+  background: #eaf4fb;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 16px;
+  color: #2563eb;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+  outline: none;
+}
+.pagination button.active, .pagination button:focus {
+  background: #60a5fa;
+  color: #fff;
+}
+.pagination button:hover:not(.active) {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* Export Excel button - xanh pastel */
+.export-btn {
+  background: linear-gradient(90deg, #bae6fd 0%, #60a5fa 100%);
+  color: #2563eb;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-size: 1.07rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 8px;
+  box-shadow: 0 2px 8px #bae6fd22;
+  transition: background 0.2s, box-shadow 0.2s, color 0.18s;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.export-btn:hover {
+  background: linear-gradient(90deg, #60a5fa 0%, #bae6fd 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px #60a5fa22;
+}
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .history-table-box { max-width: 100vw; }
+}
+@media (max-width: 900px) {
+    .main-content { margin-left: 60px; padding: 14px 2px 0 2px; }
+    .history-table th, .history-table td { font-size: 0.98rem; padding: 8px 4px; }
+    .history-table-box { padding: 10px 2px 10px 2px; }
+    .history-tabs { gap: 4px; }
+    .history-tab { padding: 8px 10px; font-size: 1rem; }
+}
+@media (max-width: 600px) {
+  .main-content { padding: 6px 1px 0 1px; }
+  .history-table th, .history-table td { font-size: 0.93rem; padding: 6px 2px; }
+  .history-table-box { padding: 4px 0 4px 0; }
+  .history-tabs { gap: 2px; }
+  .history-tab { padding: 6px 6px; font-size: 0.95rem; }
+}
+
+/* Highlight row đang sửa - xanh pastel */
+.history-table tr.edit-row,
+.history-table tr input:focus,
+.history-table tr select:focus {
+  background: #e0f2fe !important;
+  transition: background 0.2s;
+}
+
+/* Input và select trong bảng khi sửa - xanh dịu, không xô dịch */
+.history-table tr.edit-row input,
+.history-table tr.edit-row select {
+  border: 1.5px solid #60a5fa;
+  background: #f6fbff;
+  color: #2563eb;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 4px 8px;
+  outline: none;
+  box-shadow: 0 2px 8px #bae6fd22;
+  transition: border 0.18s, background 0.18s;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 0;
+  height: 28px;
+  font-size: 1.07rem;
+  line-height: 1.2;
+  display: block;
+}
+
+/* Căn chỉnh input theo cột */
+.history-table tr.edit-row td:nth-child(1) input { text-align: right; }
+.history-table tr.edit-row td:nth-child(2) input,
+.history-table tr.edit-row td:nth-child(2) select,
+.history-table tr.edit-row td:nth-child(2) input[type="date"] { text-align: center; }
+.history-table tr.edit-row td:nth-child(3) input { text-align: left; }
+.history-table tr.edit-row td:nth-child(4) input { text-align: center; }
+
+/* Nút xác nhận/hủy khi sửa - xanh nhạt và xám */
+.history-table tr.edit-row button {
+  background: linear-gradient(90deg, #bae6fd 0%, #60a5fa 100%);
+  color: #2563eb;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 1.1em;
+  font-weight: 600;
+  margin: 0 2px;
+  box-shadow: 0 2px 8px #bae6fd22;
+  transition: background 0.18s, color 0.18s;
+  height: 32px;
+  min-width: 36px;
+}
+.history-table tr.edit-row button:hover {
+  background: linear-gradient(90deg, #60a5fa 0%, #bae6fd 100%);
+  color: #fff;
+}
+.history-table tr.edit-row button:first-child {
+  background: linear-gradient(90deg, #a7f3d0 0%, #60a5fa 100%);
+  color: #059669;
+}
+.history-table tr.edit-row button:first-child:hover {
+  background: linear-gradient(90deg, #60a5fa 0%, #a7f3d0 100%);
+  color: #fff;
+}
+.history-table tr.edit-row button:last-child {
+  background: #e5e7eb;
+  color: #64748b;
+}
+.history-table tr.edit-row button:last-child:hover {
+  background: #cbd5e1;
+  color: #2563eb;
+}

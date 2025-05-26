@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quản lý chi tiêu</title>
+  <link rel="stylesheet" href="../css/home.css"/>
+  <link rel="stylesheet" href="../css/income.css"/>
+  <link rel="stylesheet" href="../css/expense.css"/>
+  <link rel="stylesheet" href="../css/sidebar.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+  <div id="toast-message" class="toast-message"></div>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <img class="avatar" src="../assets/logo-dai-hoc-mo-dia-chat-inkythuatso-01-20-14-51-41.jpg" alt="Avatar">
+      <div class="username" id="username">Tên người dùng</div>
+    </div>
+    <nav class="sidebar-nav">
+        <a href="home.html"><i class="fa fa-home"></i> <span>Tổng quan</span></a>
+        <a href="income.html"><i class="fa fa-arrow-down"></i> <span>Quản lý thu nhập</span></a>
+        <a href="expense.html"><i class="fa fa-arrow-up"></i> <span>Quản lý chi tiêu</span></a>
+        <a href="history.html"><i class="fa fa-history"></i> <span>Lịch sử giao dịch</span></a>
+        <a href="financial_statement.html"><i class="fa-solid fa-coins"></i> <span>Xem báo cáo</span></a>
+        <a href="accounts.html"><i class="fa fa-user-circle"></i> <span>Quản lý tài khoản</span></a>
+        <a href="logout.html"><i class="fa fa-sign-out-alt"></i> <span>Đăng xuất</span></a>
+    </nav>
+
+  </div>
+  <div class="main-content">
+    <div class="overview">
+      <div class="overview-item">
+        <div class="icon"><i class="fa fa-arrow-up"></i></div>
+        <div>
+          <div class="label">Tổng chi tháng này</div>
+          <div class="value" id="total-expense">0 VNĐ</div>
+        </div>
+      </div>
+      <div class="overview-item">
+        <div class="icon"><i class="fa fa-wallet"></i></div>
+        <div>
+          <div class="label">Số dư hiện tại</div>
+          <div class="value" id="balance">0 VNĐ</div>
+        </div>
+      </div>
+    </div>
+    <div class="expense-form-box">
+      <h2>Thêm chi tiêu mới</h2>
+      <form id="expense-form" autocomplete="off">
+        <div class="input-group" style="display: flex; gap: 12px;">
+          <div style="flex:1;">
+            <label for="amount">Số tiền</label>
+            <input type="text" id="amount" name="amount" placeholder="Nhập số tiền" required autocomplete="off" inputmode="numeric" pattern="^[\d\.]+$" />
+          </div>
+          <div style="flex:1;">
+            <label>Danh mục
+              <button type="button" id="add-category-btn" title="Thêm danh mục" class="add-category-btn">
+                <i class="fa-solid fa-circle-plus"></i>
+              </button>
+            </label>
+            <div id="category-dropdown" class="category-dropdown">
+              <input type="text" id="category-selected" readonly placeholder="Chọn danh mục" required />
+              <div id="category-list" class="category-list"></div>
+            </div>
+          </div>
+        </div>
+        <div class="input-group">
+          <label for="date">Ngày</label>
+          <input type="date" id="date" name="date" required />
+        </div>
+        <div class="input-group">
+          <label for="note">Ghi chú</label>
+          <input type="text" id="note" name="note" placeholder="Ghi chú (không bắt buộc)" maxlength="255" />
+        </div>
+        <button type="submit"><i class="fa fa-plus"></i> Thêm chi tiêu</button>
+      </form>
+      <div id="expense-message" class="income-message"></div>
+    </div>
+    <div class="expense-history-col">
+      <h3>Lịch sử chi tiêu (3 bản ghi gần nhất)</h3>
+      <table class="expense-table">
+        <thead>
+          <tr>
+            <th>Số tiền</th>
+            <th>Danh mục</th>
+            <th>Ngày</th>
+            <th>Ghi chú</th>
+            <th>Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="expense-history">
+          <!-- Dữ liệu sẽ được render bằng JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <script>
+    // Lấy tên người dùng từ session
+    fetch('../php/get_user.php')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById('username').textContent = data.username;
+        } else {
+          window.location.href = 'index.html';
+        }
+      });
+
+    // Định dạng số tiền khi nhập
+    const amountInput = document.getElementById('amount');
+    amountInput.addEventListener('input', function(e) {
+      let value = this.value.replace(/\D/g, '');
+      if (value) {
+        this.value = Number(value).toLocaleString('vi-VN');
+      } else {
+        this.value = '';
+      }
+    });
+
+    // Dropdown danh mục
+    let categories = [];
+    let selectedCategoryId = null;
+
+    async function loadCategories() {
+      const res = await fetch('../php/expense.php?action=categories');
+      const data = await res.json();
+      categories = data.categories || [];
+      renderCategoryList();
+    }
+
+    function renderCategoryList() {
+      const list = document.getElementById('category-list');
+      list.innerHTML = '';
+      if (!categories.length) {
+        list.innerHTML = '<div class="category-item" style="color:#888;">Chưa có danh mục</div>';
+        selectedCategoryId = null;
+        document.getElementById('category-selected').value = '';
+        return;
+      }
+      categories.forEach(cat => {
+        const item = document.createElement('div');
+        item.className = 'category-item';
+        item.innerHTML = `
+          <span>${cat.name}</span>
+          <button type="button" class="category-delete-btn" title="Xóa" onclick="event.stopPropagation(); deleteCategory(${cat.id})">
+            <i class="fa fa-trash"></i>
+          </button>
+        `;
+        item.onclick = () => {
+          selectedCategoryId = cat.id;
+          document.getElementById('category-selected').value = cat.name;
+          document.getElementById('category-list').classList.remove('show');
+        };
+        list.appendChild(item);
+      });
+    }
+
+    document.getElementById('category-selected').onclick = function() {
+      document.getElementById('category-list').classList.toggle('show');
+    };
+    document.addEventListener('click', function(e) {
+      if (!document.getElementById('category-dropdown').contains(e.target)) {
+        document.getElementById('category-list').classList.remove('show');
+      }
+    });
+
+    document.getElementById('add-category-btn').onclick = async function() {
+      const name = prompt('Nhập tên danh mục mới:');
+      if (!name) return;
+      const formData = new FormData();
+      formData.append('action', 'add_category');
+      formData.append('name', name);
+      const res = await fetch('../php/expense.php', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!data.success) showToast(data.message, 'error');
+      // Nếu backend trả về categories mới, cập nhật luôn
+      if (data.categories) {
+        categories = data.categories;
+        renderCategoryList();
+      } else {
+        loadCategories();
+      }
+    };
+
+    async function deleteCategory(id) {
+      if (!confirm('Bạn có chắc chắn muốn xóa danh mục này?')) return;
+      const formData = new FormData();
+      formData.append('action', 'delete_category');
+      formData.append('id', id);
+      const res = await fetch('../php/expense.php', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!data.success) showToast(data.message, 'error');
+      if (data.categories) {
+        categories = data.categories;
+        renderCategoryList();
+      } else {
+        loadCategories();
+      }
+    }
+
+    // Thêm hoặc sửa chi tiêu
+    let editingId = null;
+    document.getElementById('expense-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const amountRaw = amountInput.value.replace(/\./g, '').replace(/,/g, '');
+      const date = document.getElementById('date').value;
+      const note = document.getElementById('note').value.trim();
+      const messageBox = document.getElementById('expense-message');
+      messageBox.textContent = '';
+
+      if (!amountRaw || isNaN(amountRaw) || Number(amountRaw) <= 0) {
+        messageBox.textContent = 'Số tiền phải lớn hơn 0 và chỉ nhập số!';
+        return;
+      }
+      if (!selectedCategoryId) {
+        messageBox.textContent = 'Vui lòng chọn danh mục!';
+        return;
+      }
+      if (!date) {
+        messageBox.textContent = 'Vui lòng chọn ngày!';
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('action', editingId ? 'edit' : 'add');
+      if (editingId) formData.append('id', editingId);
+      formData.append('amount', amountRaw);
+      formData.append('category_id', selectedCategoryId);
+      formData.append('date', date);
+      formData.append('note', note);
+
+      const response = await fetch('../php/expense.php', {
+        method: 'POST',
+        body: formData
+      });
+      const result = await response.json();
+
+      if (result.success) {
+        this.reset();
+        amountInput.value = '';
+        selectedCategoryId = null;
+        document.getElementById('category-selected').value = '';
+        editingId = null;
+        loadExpenseHistory();
+        loadTotalExpense();
+        loadBalance();
+      } else {
+        showToast(result.message, 'error');
+      }
+      // Không cần show thông báo khi thành công
+      messageBox.textContent = result.success ? '' : result.message;
+      messageBox.className = 'income-message ' + (result.success ? 'success' : 'error');
+      setTimeout(() => {
+        messageBox.textContent = '';
+        messageBox.className = 'income-message';
+      }, 2000);
+    });
+
+    // Hiển thị 3 bản ghi gần nhất bên dưới bảng
+    async function loadExpenseHistory() {
+      const res = await fetch('../php/expense.php?action=recent');
+      const data = await res.json();
+      const tbody = document.getElementById('expense-history');
+      tbody.innerHTML = '';
+      if (!data.length) {
+        tbody.innerHTML = `<tr><td colspan="5" style="color:#888;text-align:center;">Chưa có dữ liệu</td></tr>`;
+        return;
+      }
+      data.forEach(item => {
+        tbody.innerHTML += `
+          <tr>
+            <td class="amount-cell">${Number(item.amount).toLocaleString('vi-VN')} VNĐ</td>
+            <td class="category-cell">${item.category_name}</td>
+            <td class="date-cell">${item.date}</td>
+            <td class="note-cell" title="${item.note ? item.note.replace(/"/g, '&quot;') : ''}">${item.note ? item.note : ''}</td>
+            <td class="actions-cell">
+              <button class="edit-btn" onclick="editExpense(${item.id}, '${item.amount}', '${item.category_id}', '${item.date}', \`${item.note ? item.note.replace(/`/g, '\\`') : ''}\`)"><i class="fa fa-edit"></i></button>
+              <button class="delete-btn" onclick="deleteExpense(${item.id})"><i class="fa fa-trash"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    // Load tổng chi tháng này
+    async function loadTotalExpense() {
+      const res = await fetch('../php/expense.php?action=total');
+      const data = await res.json();
+      document.getElementById('total-expense').textContent = Number(data.total || 0).toLocaleString('vi-VN') + ' VNĐ';
+    }
+
+    // Load số dư (tổng thu - tổng chi)
+    async function loadBalance() {
+      const res = await fetch('../php/expense.php?action=balance');
+      const data = await res.json();
+      document.getElementById('balance').textContent = Number(data.balance || 0).toLocaleString('vi-VN') + ' VNĐ';
+    }
+
+    // Xóa chi tiêu
+    async function deleteExpense(id) {
+      if (!confirm('Bạn có chắc chắn muốn xóa bản ghi này?')) return;
+      const formData = new FormData();
+      formData.append('action', 'delete');
+      formData.append('id', id);
+      const res = await fetch('../php/expense.php', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      showToast(data.message, data.success ? 'success' : 'error');
+      loadExpenseHistory();
+      loadTotalExpense();
+      loadBalance();
+    }
+
+    window.editExpense = function(id, amount, category_id, date, note) {
+      amountInput.value = Number(amount).toLocaleString('vi-VN');
+      // Tìm và chọn lại danh mục
+      const cat = categories.find(c => c.id == category_id);
+      if (cat) {
+        selectedCategoryId = cat.id;
+        document.getElementById('category-selected').value = cat.name;
+      }
+      document.getElementById('date').value = date;
+      document.getElementById('note').value = note;
+      editingId = id; // Đặt editingId để khi submit sẽ gọi API edit
+    }
+
+    // Toast message
+    function showToast(message, type = 'success') {
+      const toast = document.getElementById('toast-message');
+      toast.textContent = message;
+      toast.className = 'toast-message show ' + type;
+      setTimeout(() => {
+        toast.className = 'toast-message ' + type;
+        toast.textContent = '';
+      }, 3000);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadCategories();
+      loadExpenseHistory();
+      loadTotalExpense();
+      loadBalance();
+      fetch('../php/get_user.php')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById('username').textContent = data.username;
+          } else {
+            window.location.href = 'index.html';
+          }
+        });
+    });
+
+    // Tự động set active cho sidebar theo URL
+    document.addEventListener('DOMContentLoaded', function() {
+      var path = window.location.pathname.split('/').pop();
+      document.querySelectorAll('.sidebar-nav a').forEach(function(link) {
+        // So sánh tên file (không phân biệt query string)
+        if (link.getAttribute('href') === path) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Báo cáo tài chính cá nhân</title>
+  <link rel="stylesheet" href="../css/financial.css"/>
+  <link rel="stylesheet" href="../css/sidebar.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <img class="avatar" src="../assets/logo-dai-hoc-mo-dia-chat-inkythuatso-01-20-14-51-41.jpg" alt="Avatar">
+      <div class="username" id="username"></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="home.html"><i class="fa fa-home"></i> <span>Tổng quan</span></a>
+      <a href="income.html"><i class="fa fa-arrow-down"></i> <span>Quản lý thu nhập</span></a>
+      <a href="expense.html"><i class="fa fa-arrow-up"></i> <span>Quản lý chi tiêu</span></a>
+      <a href="history.html"><i class="fa fa-history"></i> <span>Lịch sử giao dịch</span></a>
+      <a href="financial_statement.html" class="active"><i class="fa-solid fa-coins"></i> <span>Báo cáo tài chính</span></a>
+      <a href="accounts.html"><i class="fa fa-user-circle"></i> <span>Quản lý tài khoản</span></a>
+      <a href="logout.html"><i class="fa fa-sign-out-alt"></i> <span>Đăng xuất</span></a>
+    </nav>
+  </div>
+  <div class="main-content">
+    <h2 style="text-align:center;margin-top:18px;">Báo cáo tài chính cá nhân</h2>
+    <div class="financial-filter-bar">
+      <label>Chọn quý:
+        <select id="quarter">
+          <option value="1">Quý 1</option>
+          <option value="2">Quý 2</option>
+          <option value="3">Quý 3</option>
+          <option value="4">Quý 4</option>
+        </select>
+      </label>
+      <label>Năm:
+        <input type="number" id="year" min="2000" max="2100" value="2025" style="width:80px;">
+      </label>
+      <button id="view-report"><i class="fa fa-chart-line"></i> Xem báo cáo</button>
+      <button id="export-excel"><i class="fa fa-file-excel"></i> Xuất Excel</button>
+      <button id="export-pdf"><i class="fa fa-file-pdf"></i> Xuất PDF</button>
+    </div>
+
+    <div class="financial-summary">
+      <div class="summary-item">
+        <div class="summary-label">Tổng thu nhập</div>
+        <div class="summary-value" id="total-income">0</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Tổng chi tiêu</div>
+        <div class="summary-value" id="total-expense">0</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Số dư cuối kỳ</div>
+        <div class="summary-value" id="final-balance">0</div>
+      </div>
+    </div>
+
+    <div class="financial-chart-section">
+      <h3>Biểu đồ thu/chi theo tháng trong quý</h3>
+      <canvas id="line-chart" height="80"></canvas>
+    </div>
+
+    <div class="financial-table-section">
+      <h3>Thống kê chi tiêu theo danh mục</h3>
+      <table class="financial-table">
+        <thead>
+          <tr>
+            <th>Danh mục</th>
+            <th>Số tiền</th>
+            <th>Tỷ lệ (%)</th>
+          </tr>
+        </thead>
+        <tbody id="category-stats">
+          <!-- Dữ liệu sẽ được render bằng JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="financial-advice" id="financial-advice">
+      <!-- Cảnh báo/gợi ý tài chính sẽ hiển thị ở đây -->
+    </div>
+  </div>
+  <script>
+    // Demo dữ liệu mẫu, bạn sẽ thay bằng fetch từ backend
+    const demoData = {
+      totalIncome: 25000000,
+      totalExpense: 18000000,
+      finalBalance: 7000000,
+      months: ['Tháng 1', 'Tháng 2', 'Tháng 3'],
+      incomeByMonth: [8000000, 9000000, 8000000],
+      expenseByMonth: [6000000, 7000000, 5000000],
+      categoryStats: [
+        { name: 'Ăn uống', amount: 5000000, percent: 27.8 },
+        { name: 'Di chuyển', amount: 2000000, percent: 11.1 },
+        { name: 'Giải trí', amount: 3000000, percent: 16.7 },
+        { name: 'Nhà ở', amount: 4000000, percent: 22.2 },
+        { name: 'Khác', amount: 4000000, percent: 22.2 }
+      ],
+      advice: [
+        "Chi tiêu cho 'Ăn uống' đang chiếm tỷ lệ cao, hãy cân nhắc giảm bớt.",
+        "Bạn đã tiết kiệm được 28% thu nhập, rất tốt!"
+      ]
+    };
+
+    function renderReport(data) {
+      document.getElementById('total-income').textContent = data.totalIncome.toLocaleString('vi-VN') + ' VNĐ';
+      document.getElementById('total-expense').textContent = data.totalExpense.toLocaleString('vi-VN') + ' VNĐ';
+      document.getElementById('final-balance').textContent = data.finalBalance.toLocaleString('vi-VN') + ' VNĐ';
+
+      // Render bảng danh mục
+      const tbody = document.getElementById('category-stats');
+      tbody.innerHTML = '';
+      data.categoryStats.forEach(cat => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${cat.name}</td>
+            <td style="text-align:right">${cat.amount.toLocaleString('vi-VN')} VNĐ</td>
+            <td style="text-align:center">${cat.percent}%</td>
+          </tr>
+        `;
+      });
+
+      // Render biểu đồ đường
+      const ctx = document.getElementById('line-chart').getContext('2d');
+      if (window.lineChart) window.lineChart.destroy();
+      window.lineChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.months,
+          datasets: [
+            {
+              label: 'Thu nhập',
+              data: data.incomeByMonth,
+              borderColor: '#22c55e',
+              backgroundColor: 'rgba(34,197,94,0.1)',
+              tension: 0.3
+            },
+            {
+              label: 'Chi tiêu',
+              data: data.expenseByMonth,
+              borderColor: '#ef4444',
+              backgroundColor: 'rgba(239,68,68,0.1)',
+              tension: 0.3
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                callback: function(value) {
+                  return value.toLocaleString('vi-VN');
+                }
+              }
+            }
+          }
+        }
+      });
+
+      // Render cảnh báo/gợi ý
+      const adviceDiv = document.getElementById('financial-advice');
+      adviceDiv.innerHTML = '';
+      if (data.advice && data.advice.length) {
+        data.advice.forEach(msg => {
+          adviceDiv.innerHTML += `<div class="advice-item"><i class="fa fa-lightbulb"></i> ${msg}</div>`;
+        });
+      }
+    }
+
+    // Sự kiện xem báo cáo (demo)
+    document.addEventListener('DOMContentLoaded', function() {
+      renderReport(demoData);
+      document.getElementById('view-report').onclick = () => renderReport(demoData);
+      document.getElementById('export-excel').onclick = () => alert('Chức năng xuất Excel sẽ được bổ sung!');
+      document.getElementById('export-pdf').onclick = () => alert('Chức năng xuất PDF sẽ được bổ sung!');
+    });
+  </script>
+</body>
+</html>

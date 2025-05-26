@@ -1,0 +1,39 @@
+<?php
+require_once 'db.php';
+
+header('Content-Type: application/json');
+
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $username = $_POST["username"] ?? '';
+    $email = $_POST["email"] ?? '';
+    $password = $_POST["password"] ?? '';
+    $confirm_password = $_POST["confirm_password"] ?? '';
+
+    if ($password !== $confirm_password) {
+        echo json_encode(['success' => false, 'message' => 'Mật khẩu không trùng khớp.']);
+        exit;
+    }
+
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username OR email = :email");
+    $stmt->execute(['username' => $username, 'email' => $email]);
+
+    if ($stmt->rowCount() > 0) {
+        echo json_encode(['success' => false, 'message' => 'Tên đăng nhập hoặc email đã tồn tại.']);
+        exit;
+    }
+
+    $stmt = $pdo->prepare("INSERT INTO users (username, password, email, created_at) VALUES (:username, :password, :email, NOW())");
+    $stmt->execute([
+        'username' => $username,
+        'password' => $hashedPassword,
+        'email' => $email
+    ]);
+
+    echo json_encode(['success' => true, 'message' => 'Đăng ký thành công!']);
+    exit;
+}
+echo json_encode(['success' => false, 'message' => 'Yêu cầu không hợp lệ.']);
+exit;
+?>
