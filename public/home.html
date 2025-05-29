@@ -11,7 +11,7 @@
   <div class="sidebar">
     <div class="sidebar-header">
       <img class="avatar" src="../assets/logo-dai-hoc-mo-dia-chat-inkythuatso-01-20-14-51-41.jpg" alt="Avatar">
-      <div class="username" id="username">Tên người dùng</div>
+      <div class="username" id="username"></div>
     </div>
     <nav class="sidebar-nav">
       <a href="home.html"><i class="fa fa-home"></i> <span>Tổng quan</span></a>
@@ -21,7 +21,7 @@
       <a href="financial_statement.html"><i class="fa-solid fa-coins"></i> <span>Xem báo cáo</span></a>
       <a href="accounts.html"><i class="fa fa-user-circle"></i> <span>Quản lý tài khoản</span></a>
       <a href="logout.html"><i class="fa fa-sign-out-alt"></i> <span>Đăng xuất</span></a>
-  </nav>
+    </nav>
   </div>
   <div class="main-content">
     <div class="welcome-box">
@@ -57,10 +57,9 @@
       <a href="history.html" class="quick-link"><i class="fa fa-history"></i> Xem lịch sử</a>
     </div>
   </div>
-
   <script>
-    // Lấy tên người dùng từ session
-    fetch('../php/get_user.php')
+    // Kiểm tra đăng nhập ngay khi load trang
+    fetch('../php/get_user.php', { credentials: 'same-origin' })
       .then(res => res.json())
       .then(data => {
         if (data.success) {
@@ -71,34 +70,27 @@
       });
     // Lấy tổng thu nhập và tổng chi tiêu tháng này, sau đó tính số dư
     async function updateOverview() {
-      // Lấy tổng thu nhập tháng
       const incomeRes = await fetch('../php/income.php?action=total');
       const incomeData = await incomeRes.json();
       const totalIncome = Number(incomeData.total || 0);
 
-      // Lấy tổng chi tiêu tháng
       const expenseRes = await fetch('../php/expense.php?action=total');
       const expenseData = await expenseRes.json();
       const totalExpense = Number(expenseData.total || 0);
 
-      // Hiển thị
       document.getElementById('monthly-income').textContent = totalIncome.toLocaleString('vi-VN') + ' VNĐ';
       document.getElementById('monthly-expense').textContent = totalExpense.toLocaleString('vi-VN') + ' VNĐ';
       document.getElementById('current-balance').textContent = (totalIncome - totalExpense).toLocaleString('vi-VN') + ' VNĐ';
     }
-
-    // Gọi khi trang vừa load
     updateOverview();
-    // Tự động set active cho sidebar theo URL
     document.addEventListener('DOMContentLoaded', function() {
       var path = window.location.pathname.split('/').pop();
       document.querySelectorAll('.sidebar-nav a').forEach(function(link) {
-        // So sánh tên file (không phân biệt query string)
         if (link.getAttribute('href') === path) {
           link.classList.add('active');
         }
       });
     });
-    </script>
+  </script>
 </body>
 </html>

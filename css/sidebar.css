@@ -1,4 +1,7 @@
 /* Sidebar hiện đại, nổi bật tab active */
+:root, html, body, .sidebar, .sidebar-header, .sidebar-nav, .main-content {
+    font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+}
 .sidebar {
     position: fixed;
     left: 0; top: 0; bottom: 0;

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quản lý tài khoản</title>
+  <link rel="stylesheet" href="../css/accounts.css"/>
+  <link rel="stylesheet" href="../css/sidebar.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <img class="avatar" src="../assets/logo-dai-hoc-mo-dia-chat-inkythuatso-01-20-14-51-41.jpg" alt="Avatar">
+      <div class="username" id="username"></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="home.html"><i class="fa fa-home"></i> <span>Tổng quan</span></a>
+      <a href="income.html"><i class="fa fa-arrow-down"></i> <span>Quản lý thu nhập</span></a>
+      <a href="expense.html"><i class="fa fa-arrow-up"></i> <span>Quản lý chi tiêu</span></a>
+      <a href="history.html"><i class="fa fa-history"></i> <span>Lịch sử giao dịch</span></a>
+      <a href="financial_statement.html"><i class="fa-solid fa-coins"></i> <span>Xem báo cáo</span></a>
+      <a href="accounts.html" class="active"><i class="fa fa-user-circle"></i> <span>Quản lý tài khoản</span></a>
+      <a href="logout.html"><i class="fa fa-sign-out-alt"></i> <span>Đăng xuất</span></a>
+    </nav>
+  </div>
+  <div class="main-content">
+    <div class="account-container">
+      <h2 class="account-title">Quản lý tài khoản</h2>
+      <div class="account-info" id="account-info">
+        <label>Tên đăng nhập:</label>
+        <div class="info-value" id="info-username">...</div>
+        <label>Email:</label>
+        <div class="info-value" id="info-email">...</div>
+        <label>Ngày tạo:</label>
+        <div class="info-value" id="info-created">...</div>
+      </div>
+      <form class="change-password-form" id="change-password-form" autocomplete="off">
+        <label for="old-password">Mật khẩu hiện tại:</label>
+        <input type="password" id="old-password" required autocomplete="current-password"/>
+        <label for="new-password">Mật khẩu mới:</label>
+        <input type="password" id="new-password" required autocomplete="new-password"/>
+        <label for="confirm-password">Nhập lại mật khẩu mới:</label>
+        <input type="password" id="confirm-password" required autocomplete="new-password"/>
+        <button type="submit"><i class="fa fa-key"></i> Đổi mật khẩu</button>
+        <div class="account-message" id="account-message"></div>
+      </form>
+      <button id="delete-account-btn" class="delete-account-btn">
+        <i class="fa fa-trash"></i> Xóa tài khoản
+      </button>
+    </div>
+  </div>
+  <script>
+    // Lấy thông tin tài khoản
+    fetch('../php/accounts.php?action=get_info')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          document.getElementById('username').textContent = data.username;
+          document.getElementById('info-username').textContent = data.username;
+          document.getElementById('info-email').textContent = data.email || '(chưa cập nhật)';
+          // Hiển thị chỉ ngày (YYYY-MM-DD) nếu có created_at
+          let created = data.created_at || '';
+          if (created && created.length >= 10) created = created.substring(0, 10);
+          document.getElementById('info-created').textContent = created || '(không rõ)';
+        } else {
+          window.location.href = 'index.html';
+        }
+      });
+
+    // Đổi mật khẩu
+    document.getElementById('change-password-form').onsubmit = async function(e) {
+      e.preventDefault();
+      const oldPass = document.getElementById('old-password').value.trim();
+      const newPass = document.getElementById('new-password').value.trim();
+      const confirmPass = document.getElementById('confirm-password').value.trim();
+      const msg = document.getElementById('account-message');
+      msg.textContent = '';
+      if (!oldPass || !newPass || !confirmPass) {
+        msg.textContent = 'Vui lòng nhập đầy đủ thông tin!';
+        msg.style.color = '#ef4444';
+        return;
+      }
+      if (newPass.length < 6) {
+        msg.textContent = 'Mật khẩu mới phải từ 6 ký tự!';
+        msg.style.color = '#ef4444';
+        return;
+      }
+      if (newPass !== confirmPass) {
+        msg.textContent = 'Mật khẩu mới nhập lại không khớp!';
+        msg.style.color = '#ef4444';
+        return;
+      }
+      const formData = new FormData();
+      formData.append('action', 'change_password');
+      formData.append('old_password', oldPass);
+      formData.append('new_password', newPass);
+      const res = await fetch('../php/accounts.php', { method: 'POST', body: formData });
+      const result = await res.json();
+      if (result.success) {
+        msg.textContent = result.message || 'Đổi mật khẩu thành công!';
+        msg.style.color = '#059669';
+        document.getElementById('change-password-form').reset();
+      } else {
+        msg.textContent = result.message || 'Đổi mật khẩu thất bại!';
+        msg.style.color = '#ef4444';
+      }
+    };
+
+    // Xóa tài khoản
+    document.getElementById('delete-account-btn').onclick = async function() {
+      if (!confirm('Bạn có chắc chắn muốn xóa tài khoản? Tất cả dữ liệu liên quan sẽ bị xóa vĩnh viễn và không thể khôi phục!')) return;
+      const btn = this;
+      btn.disabled = true;
+      btn.textContent = 'Đang xóa...';
+      const res = await fetch('../php/accounts.php', {
+        method: 'POST',
+        body: new URLSearchParams({ action: 'delete_account' })
+      });
+      const result = await res.json();
+      if (result.success) {
+        alert('Tài khoản đã được xóa. Bạn sẽ được chuyển về trang đăng nhập.');
+        window.location.href = 'index.html';
+      } else {
+        alert(result.message || 'Xóa tài khoản thất bại!');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa fa-trash"></i> Xóa tài khoản';
+      }
+    };
+
+    // Sidebar active
+    document.addEventListener('DOMContentLoaded', function() {
+      var path = window.location.pathname.split('/').pop();
+      document.querySelectorAll('.sidebar-nav a').forEach(function(link) {
+        if (link.getAttribute('href') === path) {
+          link.classList.add('active');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

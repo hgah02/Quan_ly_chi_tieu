@@ -1,16 +1,31 @@
 <?php
+session_start();
 require_once 'db.php';
 
 header('Content-Type: application/json');
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $username = $_POST["username"] ?? '';
+    $username = trim($_POST["username"] ?? '');
     $email = $_POST["email"] ?? '';
     $password = $_POST["password"] ?? '';
     $confirm_password = $_POST["confirm_password"] ?? '';
 
+    if (!$username || !$password || !$confirm_password) {
+        echo json_encode(['success' => false, 'message' => 'Vui lòng nhập đầy đủ thông tin!']);
+        exit;
+    }
+    // Kiểm tra username: chỉ chữ và số, có cả chữ và số, không ký tự đặc biệt, tối thiểu 6 ký tự
+    if (!preg_match('/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{6,32}$/', $username)) {
+        echo json_encode(['success' => false, 'message' => 'Tên đăng nhập phải từ 6 ký tự, chỉ gồm chữ và số, và phải có cả chữ lẫn số.']);
+        exit;
+    }
+    // Kiểm tra password: tối thiểu 6 ký tự, có cả chữ và số
+    if (!preg_match('/^(?=.*[a-zA-Z])(?=.*\d).{6,32}$/', $password)) {
+        echo json_encode(['success' => false, 'message' => 'Mật khẩu phải từ 6 ký tự, có cả chữ và số.']);
+        exit;
+    }
     if ($password !== $confirm_password) {
-        echo json_encode(['success' => false, 'message' => 'Mật khẩu không trùng khớp.']);
+        echo json_encode(['success' => false, 'message' => 'Mật khẩu nhập lại không khớp.']);
         exit;
     }
 

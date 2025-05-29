@@ -13,15 +13,16 @@
     <div class="logo">
       <img src="../assets/logo-dai-hoc-mo-dia-chat-inkythuatso-01-20-14-51-41.jpg" alt="Logo trường đại học Mỏ - Địa chất" />
     </div>
-    <form class="register-form" autocomplete="off">
+    <form id="register-form" class="register-form" autocomplete="off">
       <h2>Tạo tài khoản mới</h2>
       <p>Điền thông tin để đăng ký</p>
 
       <div class="input-group">
         <label for="username">Tên đăng nhập</label>
         <input type="text" name="username" id="username" placeholder="Nhập tên đăng nhập" required 
-          pattern="^[a-zA-Z0-9]*$"
-          title="Chỉ được chứa chữ cái và số, không có khoảng trắng hay ký tự đặc biệt"/>
+          minlength="6" maxlength="32"
+          pattern="^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{6,32}$"
+          title="Tên đăng nhập phải có cả chữ và số, không ký tự đặc biệt, tối thiểu 6 ký tự"/>
       </div>
 
       <div class="input-group">
@@ -31,12 +32,15 @@
 
       <div class="input-group">
         <label for="password">Mật khẩu</label>
-        <input type="password" name="password" id="password" placeholder="Nhập mật khẩu" required />
+        <input type="password" name="password" id="password" placeholder="Nhập mật khẩu" required 
+          minlength="6" maxlength="32"
+          title="Mật khẩu tối thiểu 6 ký tự, có cả chữ và số"/>
       </div>
 
       <div class="input-group">
         <label for="confirm-password">Xác nhận mật khẩu</label>
-        <input type="password" name="confirm_password" id="confirm-password" placeholder="Nhập lại mật khẩu" required />
+        <input type="password" name="confirm_password" id="confirm-password" placeholder="Nhập lại mật khẩu" required 
+          minlength="6" maxlength="32" />
       </div>
 
       <button type="submit">Đăng ký</button>
@@ -44,8 +48,30 @@
     </form>
   </div>
   <script>
-    document.querySelector('.register-form').addEventListener('submit', async function(e) {
+    document.getElementById('register-form').onsubmit = async function(e) {
       e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const confirm = document.getElementById('confirm-password').value;
+      const msg = document.getElementById('message-box');
+      msg.textContent = '';
+      // Kiểm tra username: chỉ chữ và số, có cả chữ và số, không ký tự đặc biệt, tối thiểu 6 ký tự
+      if (!/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d]{6,32}$/.test(username)) {
+        msg.textContent = "Tên đăng nhập phải từ 6 ký tự, chỉ gồm chữ và số, và phải có cả chữ lẫn số.";
+        msg.style.color = "#e11d48";
+        return;
+      }
+      // Kiểm tra password: tối thiểu 6 ký tự, có cả chữ và số
+      if (!/^(?=.*[a-zA-Z])(?=.*\d).{6,32}$/.test(password)) {
+        msg.textContent = "Mật khẩu phải từ 6 ký tự, có cả chữ và số.";
+        msg.style.color = "#e11d48";
+        return;
+      }
+      if (password !== confirm) {
+        msg.textContent = "Mật khẩu nhập lại không khớp.";
+        msg.style.color = "#e11d48";
+        return;
+      }
       const form = e.target;
       const formData = new FormData(form);
 
@@ -57,7 +83,7 @@
 
       showMessage(result.message, result.success ? 'success' : 'error');
       if (result.success) form.reset();
-    });
+    };
 
     function showMessage(message, type) {
       const box = document.getElementById('message-box');

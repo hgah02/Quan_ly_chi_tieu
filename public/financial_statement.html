@@ -7,6 +7,50 @@
   <link rel="stylesheet" href="../css/sidebar.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .financial-container {
+      max-width: 900px;
+      margin: 32px auto 0 auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 16px #bae6fd33;
+      padding: 32px 32px 22px 32px;
+    }
+    .financial-title {
+      text-align: center;
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #1a365d;
+      margin: 0 0 22px 0;
+      letter-spacing: 0.2px;
+    }
+    .financial-filter-bar {
+      margin-bottom: 22px;
+    }
+    .financial-summary {
+      margin-bottom: 18px;
+    }
+    .financial-chart-section {
+      margin-bottom: 18px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .financial-table-section {
+      margin-bottom: 18px;
+      max-width: 500px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .financial-advice {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    @media (max-width: 900px) {
+      .financial-container { padding: 12px 4px; }
+      .financial-table-section, .financial-advice { max-width: 100vw; }
+    }
+  </style>
 </head>
 <body>
   <div class="sidebar">
@@ -19,91 +63,83 @@
       <a href="income.html"><i class="fa fa-arrow-down"></i> <span>Quản lý thu nhập</span></a>
       <a href="expense.html"><i class="fa fa-arrow-up"></i> <span>Quản lý chi tiêu</span></a>
       <a href="history.html"><i class="fa fa-history"></i> <span>Lịch sử giao dịch</span></a>
-      <a href="financial_statement.html" class="active"><i class="fa-solid fa-coins"></i> <span>Báo cáo tài chính</span></a>
+      <a href="financial_statement.html" class="active"><i class="fa-solid fa-coins"></i> <span>Xem báo cáo</span></a>
       <a href="accounts.html"><i class="fa fa-user-circle"></i> <span>Quản lý tài khoản</span></a>
       <a href="logout.html"><i class="fa fa-sign-out-alt"></i> <span>Đăng xuất</span></a>
     </nav>
   </div>
   <div class="main-content">
-    <h2 style="text-align:center;margin-top:18px;">Báo cáo tài chính cá nhân</h2>
-    <div class="financial-filter-bar">
-      <label>Chọn quý:
-        <select id="quarter">
-          <option value="1">Quý 1</option>
-          <option value="2">Quý 2</option>
-          <option value="3">Quý 3</option>
-          <option value="4">Quý 4</option>
-        </select>
-      </label>
-      <label>Năm:
-        <input type="number" id="year" min="2000" max="2100" value="2025" style="width:80px;">
-      </label>
-      <button id="view-report"><i class="fa fa-chart-line"></i> Xem báo cáo</button>
-      <button id="export-excel"><i class="fa fa-file-excel"></i> Xuất Excel</button>
-      <button id="export-pdf"><i class="fa fa-file-pdf"></i> Xuất PDF</button>
-    </div>
-
-    <div class="financial-summary">
-      <div class="summary-item">
-        <div class="summary-label">Tổng thu nhập</div>
-        <div class="summary-value" id="total-income">0</div>
+    <div class="financial-container">
+      <h2 class="financial-title">Báo cáo tài chính cá nhân</h2>
+      <div class="financial-filter-bar">
+        <label>Chọn quý:
+          <select id="quarter">
+            <option value="1">Quý 1</option>
+            <option value="2">Quý 2</option>
+            <option value="3">Quý 3</option>
+            <option value="4">Quý 4</option>
+          </select>
+        </label>
+        <label>Năm:
+          <input type="number" id="year" min="2000" max="2100" value="2025" style="width:80px;">
+        </label>
+        <button id="export-pdf"><i class="fa fa-file-pdf"></i> Xuất PDF</button>
       </div>
-      <div class="summary-item">
-        <div class="summary-label">Tổng chi tiêu</div>
-        <div class="summary-value" id="total-expense">0</div>
+      <div class="financial-summary">
+        <div class="summary-item">
+          <div class="summary-label">Tổng thu nhập</div>
+          <div class="summary-value" id="total-income">0</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Tổng chi tiêu</div>
+          <div class="summary-value" id="total-expense">0</div>
+        </div>
+        <div class="summary-item">
+          <div class="summary-label">Số dư cuối kỳ</div>
+          <div class="summary-value" id="final-balance">0</div>
+        </div>
       </div>
-      <div class="summary-item">
-        <div class="summary-label">Số dư cuối kỳ</div>
-        <div class="summary-value" id="final-balance">0</div>
+      <div class="financial-chart-section">
+        <h3 style="text-align:center;">Tỷ lệ chi tiêu & tiết kiệm</h3>
+        <div style="max-width:420px;width:100%;margin:0 auto;">
+          <canvas id="pie-chart" height="220"></canvas>
+        </div>
       </div>
-    </div>
-
-    <div class="financial-chart-section">
-      <h3>Biểu đồ thu/chi theo tháng trong quý</h3>
-      <canvas id="line-chart" height="80"></canvas>
-    </div>
-
-    <div class="financial-table-section">
-      <h3>Thống kê chi tiêu theo danh mục</h3>
-      <table class="financial-table">
-        <thead>
-          <tr>
-            <th>Danh mục</th>
-            <th>Số tiền</th>
-            <th>Tỷ lệ (%)</th>
-          </tr>
-        </thead>
-        <tbody id="category-stats">
-          <!-- Dữ liệu sẽ được render bằng JS -->
-        </tbody>
-      </table>
-    </div>
-
-    <div class="financial-advice" id="financial-advice">
-      <!-- Cảnh báo/gợi ý tài chính sẽ hiển thị ở đây -->
+      <div class="financial-table-section">
+        <h3 style="text-align:center;">Chi tiết các danh mục chi tiêu</h3>
+        <div style="overflow-x:auto;">
+          <table class="financial-table">
+            <thead>
+              <tr>
+                <th>Danh mục</th>
+                <th>Số tiền</th>
+                <th>Tỷ lệ (%)</th>
+              </tr>
+            </thead>
+            <tbody id="category-stats">
+              <!-- Dữ liệu sẽ được render bằng JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="financial-advice" id="financial-advice">
+        <!-- Khuyến cáo tiết kiệm sẽ hiển thị ở đây -->
+      </div>
     </div>
   </div>
   <script>
-    // Demo dữ liệu mẫu, bạn sẽ thay bằng fetch từ backend
-    const demoData = {
-      totalIncome: 25000000,
-      totalExpense: 18000000,
-      finalBalance: 7000000,
-      months: ['Tháng 1', 'Tháng 2', 'Tháng 3'],
-      incomeByMonth: [8000000, 9000000, 8000000],
-      expenseByMonth: [6000000, 7000000, 5000000],
-      categoryStats: [
-        { name: 'Ăn uống', amount: 5000000, percent: 27.8 },
-        { name: 'Di chuyển', amount: 2000000, percent: 11.1 },
-        { name: 'Giải trí', amount: 3000000, percent: 16.7 },
-        { name: 'Nhà ở', amount: 4000000, percent: 22.2 },
-        { name: 'Khác', amount: 4000000, percent: 22.2 }
-      ],
-      advice: [
-        "Chi tiêu cho 'Ăn uống' đang chiếm tỷ lệ cao, hãy cân nhắc giảm bớt.",
-        "Bạn đã tiết kiệm được 28% thu nhập, rất tốt!"
-      ]
-    };
+    // Lấy dữ liệu báo cáo từ backend
+    async function fetchReport() {
+      const quarter = document.getElementById('quarter').value;
+      const year = document.getElementById('year').value;
+      try {
+        const res = await fetch(`../php/financial_statement.php?quarter=${quarter}&year=${year}`);
+        const data = await res.json();
+        renderReport(data);
+      } catch (e) {
+        alert('Không thể lấy dữ liệu báo cáo!');
+      }
+    }
 
     function renderReport(data) {
       document.getElementById('total-income').textContent = data.totalIncome.toLocaleString('vi-VN') + ' VNĐ';
@@ -113,7 +149,7 @@
       // Render bảng danh mục
       const tbody = document.getElementById('category-stats');
       tbody.innerHTML = '';
-      data.categoryStats.forEach(cat => {
+      (data.categoryStats || []).forEach(cat => {
         tbody.innerHTML += `
           <tr>
             <td>${cat.name}</td>
@@ -123,64 +159,95 @@
         `;
       });
 
-      // Render biểu đồ đường
-      const ctx = document.getElementById('line-chart').getContext('2d');
-      if (window.lineChart) window.lineChart.destroy();
-      window.lineChart = new Chart(ctx, {
-        type: 'line',
+      // Pie chart: các danh mục + tiết kiệm
+      const pieLabels = (data.categoryStats || []).map(cat => cat.name).concat(['Tiết kiệm']);
+      const pieData = (data.categoryStats || []).map(cat => cat.amount);
+      const saving = Math.max(0, data.finalBalance || 0);
+      pieData.push(saving);
+      // Tính phần trăm tiết kiệm
+      const savingPercent = data.totalIncome > 0 ? Math.round(saving / data.totalIncome * 100) : 0;
+
+      const pieColors = [
+        '#60a5fa', '#fbbf24', '#34d399', '#f87171', '#a78bfa', '#f472b6', '#facc15', '#818cf8', '#4ade80', '#f59e42', '#10b981'
+      ];
+      // Vẽ biểu đồ hình tròn
+      const ctx = document.getElementById('pie-chart').getContext('2d');
+      if (window.pieChart) window.pieChart.destroy();
+      window.pieChart = new Chart(ctx, {
+        type: 'doughnut',
         data: {
-          labels: data.months,
-          datasets: [
-            {
-              label: 'Thu nhập',
-              data: data.incomeByMonth,
-              borderColor: '#22c55e',
-              backgroundColor: 'rgba(34,197,94,0.1)',
-              tension: 0.3
-            },
-            {
-              label: 'Chi tiêu',
-              data: data.expenseByMonth,
-              borderColor: '#ef4444',
-              backgroundColor: 'rgba(239,68,68,0.1)',
-              tension: 0.3
-            }
-          ]
+          labels: pieLabels,
+          datasets: [{
+            data: pieData,
+            backgroundColor: pieColors.slice(0, pieLabels.length),
+            borderWidth: 1
+          }]
         },
         options: {
           responsive: true,
           plugins: {
-            legend: { position: 'top' }
-          },
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                callback: function(value) {
-                  return value.toLocaleString('vi-VN');
+            legend: { position: 'bottom' },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  const percent = data.totalIncome > 0 ? (value / data.totalIncome * 100).toFixed(1) : 0;
+                  return `${label}: ${value.toLocaleString('vi-VN')} VNĐ (${percent}%)`;
                 }
               }
             }
-          }
+          },
+          cutout: '60%'
         }
       });
 
-      // Render cảnh báo/gợi ý
+      // Khuyến cáo tiết kiệm
       const adviceDiv = document.getElementById('financial-advice');
       adviceDiv.innerHTML = '';
-      if (data.advice && data.advice.length) {
-        data.advice.forEach(msg => {
-          adviceDiv.innerHTML += `<div class="advice-item"><i class="fa fa-lightbulb"></i> ${msg}</div>`;
-        });
+      let adviceMsg = '';
+      if (savingPercent < 20) {
+        adviceMsg = `Bạn chỉ tiết kiệm được <b>${savingPercent}%</b> thu nhập. Hãy cố gắng tiết kiệm tối thiểu 20% thu nhập mỗi quý!`;
+      } else if (savingPercent < 30) {
+        adviceMsg = `Bạn đã tiết kiệm <b>${savingPercent}%</b> thu nhập. Rất tốt, hãy duy trì hoặc nâng cao hơn nữa!`;
+      } else {
+        adviceMsg = `Bạn tiết kiệm <b>${savingPercent}%</b> thu nhập. Tuyệt vời!`;
       }
+      adviceDiv.innerHTML = `<div class="advice-item"><i class="fa fa-lightbulb"></i> ${adviceMsg}</div>`;
     }
 
-    // Sự kiện xem báo cáo (demo)
+    // Sự kiện thay đổi quý/năm
     document.addEventListener('DOMContentLoaded', function() {
-      renderReport(demoData);
-      document.getElementById('view-report').onclick = () => renderReport(demoData);
-      document.getElementById('export-excel').onclick = () => alert('Chức năng xuất Excel sẽ được bổ sung!');
-      document.getElementById('export-pdf').onclick = () => alert('Chức năng xuất PDF sẽ được bổ sung!');
+      // Đặt mặc định quý/năm hiện tại
+      const now = new Date();
+      const month = now.getMonth() + 1;
+      const quarter = Math.floor((month - 1) / 3) + 1;
+      document.getElementById('quarter').value = quarter;
+      document.getElementById('year').value = now.getFullYear();
+
+      fetchReport();
+      document.getElementById('quarter').onchange = fetchReport;
+      document.getElementById('year').onchange = fetchReport;
+      document.getElementById('export-pdf').onclick = function() {
+        const quarter = document.getElementById('quarter').value;
+        const year = document.getElementById('year').value;
+        window.open(`../php/financial_statement.php?action=export_pdf&quarter=${quarter}&year=${year}`);
+      };
+      // Sidebar đồng bộ active (giống các file khác)
+      var path = window.location.pathname.split('/').pop();
+      document.querySelectorAll('.sidebar-nav a').forEach(function(link) {
+        if (link.getAttribute('href') === path) {
+          link.classList.add('active');
+        }
+      });
+      // Lấy tên người dùng nếu có API
+      fetch('../php/get_user.php')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById('username').textContent = data.username;
+          }
+        });
     });
   </script>
 </body>

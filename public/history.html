@@ -12,17 +12,17 @@
 <body>
   <div class="sidebar">
     <div class="sidebar-header">
-        <img class="avatar" src="../assets/logo-dai-hoc-mo-dia-chat-inkythuatso-01-20-14-51-41.jpg" alt="Avatar">
-        <div class="username" id="username">Tên người dùng</div>
+      <img class="avatar" src="../assets/logo-dai-hoc-mo-dia-chat-inkythuatso-01-20-14-51-41.jpg" alt="Avatar">
+      <div class="username" id="username"></div>
     </div>
     <nav class="sidebar-nav">
-        <a href="home.html"><i class="fa fa-home"></i> <span>Tổng quan</span></a>
-        <a href="income.html"><i class="fa fa-arrow-down"></i> <span>Quản lý thu nhập</span></a>
-        <a href="expense.html"><i class="fa fa-arrow-up"></i> <span>Quản lý chi tiêu</span></a>
-        <a href="history.html" class="active"><i class="fa fa-history"></i> <span>Lịch sử giao dịch</span></a>
-        <a href="financial_statement.html"><i class="fa-solid fa-coins"></i> <span>Xem báo cáo</span></a>
-        <a href="accounts.html"><i class="fa fa-user-circle"></i> <span>Quản lý tài khoản</span></a>
-        <a href="logout.html"><i class="fa fa-sign-out-alt"></i> <span>Đăng xuất</span></a>
+      <a href="home.html"><i class="fa fa-home"></i> <span>Tổng quan</span></a>
+      <a href="income.html"><i class="fa fa-arrow-down"></i> <span>Quản lý thu nhập</span></a>
+      <a href="expense.html"><i class="fa fa-arrow-up"></i> <span>Quản lý chi tiêu</span></a>
+      <a href="history.html" class="active"><i class="fa fa-history"></i> <span>Lịch sử giao dịch</span></a>
+      <a href="financial_statement.html"><i class="fa-solid fa-coins"></i> <span>Xem báo cáo</span></a>
+      <a href="accounts.html"><i class="fa fa-user-circle"></i> <span>Quản lý tài khoản</span></a>
+      <a href="logout.html"><i class="fa fa-sign-out-alt"></i> <span>Đăng xuất</span></a>
     </nav>
   </div>
   <div class="main-content">
@@ -81,19 +81,28 @@
     let editingExpenseId = null;
     // Tab switching
     document.querySelectorAll('.history-tab').forEach(tab => {
-      tab.onclick = function() {
+      tab.onclick = async function() {
         document.querySelectorAll('.history-tab').forEach(t => t.classList.remove('active'));
         this.classList.add('active');
+        // Reset editing state khi chuyển tab
+        editingIncomeId = null;
+        editingExpenseId = null;
         if(this.dataset.tab === 'income') {
           document.getElementById('tab-income').style.display = '';
           document.getElementById('tab-expense').style.display = 'none';
           document.getElementById('filter-bar-income').style.display = '';
           document.getElementById('filter-bar-expense').style.display = 'none';
+          loadIncomeHistory(incomePage);
         } else {
           document.getElementById('tab-income').style.display = 'none';
           document.getElementById('tab-expense').style.display = '';
           document.getElementById('filter-bar-income').style.display = 'none';
           document.getElementById('filter-bar-expense').style.display = '';
+          // Đảm bảo danh mục đã load trước khi render
+          if (!expenseCategories || !expenseCategories.length) {
+            await loadExpenseCategories();
+          }
+          loadExpenseHistory(expensePage);
         }
       }
     });
@@ -125,7 +134,7 @@
       const tbody = document.getElementById('income-history');
       tbody.innerHTML = '';
       if (!data.items || !data.items.length) {
-        tbody.innerHTML = `<tr><td colspan="4" style="color:#888;text-align:center;">Chưa có dữ liệu</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" class="no-data">Chưa có dữ liệu</td></tr>`;
         renderPagination('income', 1, 1);
         return;
       }
@@ -133,7 +142,7 @@
         if (editingIncomeId === item.id) {
           tbody.innerHTML += `
             <tr class="edit-row">
-              <td><input type="text" id="edit-income-amount" value="${Number(item.amount).toLocaleString('vi-VN')}" style="width:90px;text-align:right;" /></td>
+              <td><input type="text" id="edit-income-amount" value="${Number(item.amount).toLocaleString('vi-VN')}" /></td>
               <td><input type="date" id="edit-income-date" value="${item.date}" /></td>
               <td><input type="text" id="edit-income-note" value="${item.note ? item.note.replace(/"/g, '&quot;') : ''}" style="width:120px;" /></td>
               <td>
@@ -227,24 +236,29 @@
       const month = document.getElementById('expense-month').value;
       const category = document.getElementById('expense-category').value;
       const keyword = document.getElementById('expense-keyword').value.trim();
+      // Đảm bảo danh mục đã có trước khi render
+      if (!expenseCategories || !expenseCategories.length) {
+        await loadExpenseCategories();
+      }
       const res = await fetch(`../php/expense.php?action=history&page=${page}&per_page=${expensePerPage}&month=${month}&category=${category}&keyword=${encodeURIComponent(keyword)}`);
       const data = await res.json();
       expenseTotal = data.total || 0;
       const tbody = document.getElementById('expense-history');
       tbody.innerHTML = '';
       if (!data.items || !data.items.length) {
-        tbody.innerHTML = `<tr><td colspan="5" style="color:#888;text-align:center;">Chưa có dữ liệu</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" class="no-data">Chưa có dữ liệu</td></tr>`;
         renderPagination('expense', 1, 1);
         return;
       }
       data.items.forEach(item => {
+        // So sánh id kiểu số để tránh lỗi
         if (Number(editingExpenseId) === Number(item.id)) {
           tbody.innerHTML += `
             <tr class="edit-row">
-              <td><input type="text" id="edit-expense-amount" value="${Number(item.amount).toLocaleString('vi-VN')}" style="width:90px;text-align:right;" /></td>
+              <td><input type="text" id="edit-expense-amount" value="${Number(item.amount).toLocaleString('vi-VN')}" /></td>
               <td>
                 <select id="edit-expense-category">
-                  ${expenseCategories.map(cat => `<option value="${cat.id}" ${cat.id==item.category_id?'selected':''}>${cat.name}</option>`).join('')}
+                  ${expenseCategories.map(cat => `<option value="${cat.id}" ${Number(cat.id)===Number(item.category_id)?'selected':''}>${cat.name}</option>`).join('')}
                 </select>
               </td>
               <td><input type="date" id="edit-expense-date" value="${item.date}" /></td>
@@ -285,7 +299,11 @@
       }
     }
 
-    window.editExpense = function(id, amount, category_id, date, note) {
+    window.editExpense = async function(id, amount, category_id, date, note) {
+      // Đảm bảo danh mục đã có trước khi render form sửa
+      if (!expenseCategories || !expenseCategories.length) {
+        await loadExpenseCategories();
+      }
       editingExpenseId = Number(id);
       loadExpenseHistory(expensePage);
     };
@@ -317,13 +335,30 @@
       formData.append('category_id', category_id);
       formData.append('date', date);
       formData.append('note', note);
-      const res = await fetch('../php/expense.php', { method: 'POST', body: formData });
-      const result = await res.json();
-      if (result.success) {
-        editingExpenseId = null;
-        loadExpenseHistory(expensePage);
-      } else {
-        alert(result.message || 'Có lỗi xảy ra!');
+      try {
+        const res = await fetch('../php/expense.php', { method: 'POST', body: formData });
+        const text = await res.text();
+        let result;
+        try {
+          result = JSON.parse(text);
+        } catch (e) {
+          alert('Phản hồi máy chủ không phải JSON!\n\n' + text + '\n\nHãy kiểm tra file expense.php: không được có echo/print hoặc ký tự trắng ngoài json_encode.');
+          return;
+        }
+        // Log kết quả để debug
+        console.log('Kết quả lưu chi tiêu:', result);
+        if (!result || typeof result.success === 'undefined') {
+          alert('Không nhận được phản hồi từ máy chủ hoặc phản hồi sai định dạng!\n' + text);
+          return;
+        }
+        if (result && result.success) {
+          editingExpenseId = null;
+          loadExpenseHistory(expensePage);
+        } else {
+          alert(result && result.message ? result.message : 'Có lỗi xảy ra!');
+        }
+      } catch (e) {
+        alert('Không thể lưu thay đổi. Vui lòng thử lại!');
       }
     };
 
@@ -396,6 +431,8 @@
         }
       });
     });
+
+    
   </script>
 </body>
 </html>

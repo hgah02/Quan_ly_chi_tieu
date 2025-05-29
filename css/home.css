@@ -3,7 +3,6 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
   background: #f4f8fb;
   min-height: 100vh;
   box-sizing: border-box;
@@ -13,7 +12,7 @@ html, body {
   box-sizing: inherit;
 }
 
-/* Sidebar */
+/* XÓA TOÀN BỘ ĐOẠN NÀY (KHÔNG ĐƯỢC override sidebar ở đây):
 .sidebar {
   position: fixed;
   left: 0;
@@ -27,7 +26,6 @@ html, body {
   box-shadow: 2px 0 16px rgba(59,130,246,0.08);
   z-index: 10;
 }
-
 .sidebar-header {
   display: flex;
   flex-direction: column;
@@ -35,7 +33,6 @@ html, body {
   padding: 32px 0 18px 0;
   border-bottom: 1px solid #ffffff33;
 }
-
 .sidebar-header .avatar {
   width: 64px;
   height: 64px;
@@ -45,14 +42,12 @@ html, body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
   background: #fff;
 }
-
 .sidebar-header .username {
   font-weight: 600;
   font-size: 1.08rem;
   color: #fff;
   text-align: center;
 }
-
 .sidebar-nav {
   display: flex;
   flex-direction: column;
@@ -60,7 +55,6 @@ html, body {
   gap: 6px;
   flex: 1;
 }
-
 .sidebar-nav a {
   display: flex;
   align-items: center;
@@ -74,21 +68,17 @@ html, body {
   transition: background 0.2s, border-color 0.2s, color 0.2s;
   border-radius: 0 20px 20px 0;
 }
-
 .sidebar-nav a i {
   font-size: 1.15em;
   width: 22px;
   text-align: center;
 }
-
 .sidebar-nav a:hover,
 .sidebar-nav a.active {
   background: rgba(255,255,255,0.18);
   color: #1a365d;
   border-left: 4px solid #fff;
 }
-
-/* Main content */
 .main-content {
   margin-left: 240px;
   padding: 38px 38px 24px 38px;
@@ -96,6 +86,7 @@ html, body {
   background: #f4f8fb;
   box-sizing: border-box;
 }
+*/
 
 .welcome-box {
   background: #fff;
@@ -200,3 +191,9 @@ html, body {
 body, html {
   overflow-x: hidden;
 }
+
+/* KHÔNG ĐƯỢC có các dòng như sau:
+.sidebar { font-family: Arial; }
+.sidebar-nav a { font-size: 1.2em; }
+.main-content { margin-left: 0; }
+*/

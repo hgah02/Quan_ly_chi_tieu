@@ -55,6 +55,11 @@ if (($_GET['action'] ?? '') === 'history') {
     $stmt->execute($params);
     $items = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Khi trả về dữ liệu, escape các trường text nếu cần
+    foreach ($items as &$item) {
+        $item['note'] = htmlspecialchars($item['note'], ENT_QUOTES, 'UTF-8');
+    }
+
     echo json_encode([
         'total' => intval($total),
         'items' => $items
